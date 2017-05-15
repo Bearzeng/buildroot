@@ -24,6 +24,7 @@ define RPI_FIRMWARE_INSTALL_DTB_OVERLAYS
 	for ovldtb in  $(@D)/boot/overlays/*.dtbo; do \
 		$(INSTALL) -D -m 0644 $${ovldtb} $(BINARIES_DIR)/rpi-firmware/overlays/$${ovldtb##*/} || exit 1; \
 	done
+	$(INSTALL) -D -m 0644 package/rpi-firmware/overlays/* $(BINARIES_DIR)/rpi-firmware/overlays/
 endef
 endif
 
