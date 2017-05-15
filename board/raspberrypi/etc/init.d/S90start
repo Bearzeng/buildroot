@@ -1,0 +1,52 @@
+#!/bin/sh
+#
+# Final Start ....
+#
+
+case "$1" in
+  start)
+	modprobe snd-bcm2835
+	modprobe i2c-bcm2708
+	modprobe i2c-dev
+	modprobe spi-bcm2835
+	modprobe flexfb  width=320  height=480  regwidth=16 init=-1,0xb0,0x0,-1,0x11,-2,250,-1,0x3A,0x55,-1,0xC2,0x44,-1,0xC5,0x00,0x00,0x00,0x00,-1,0xE0,0x0F,0x1F,0x1C,0x0C,0x0F,0x08,0x48,0x98,0x37,0x0A,0x13,0x04,0x11,0x0D,0x00,-1,0xE1,0x0F,0x32,0x2E,0x0B,0x0D,0x05,0x47,0x75,0x37,0x06,0x10,0x03,0x24,0x20,0x00,-1,0xE2,0x0F,0x32,0x2E,0x0B,0x0D,0x05,0x47,0x75,0x37,0x06,0x10,0x03,0x24,0x20,0x00,-1,0x36,0x28,-1,0x11,-1,0x29,-3
+	#modprobe fbtft_device debug=3 rotate=90 name=flexfb speed=24000000 gpios=reset:25,dc:24
+	modprobe fbtft_device debug=3 rotate=90 name=flexfb speed=16000000 gpios=reset:25,dc:24
+	modprobe bcm2835-v4l2
+	modprobe evdev
+	modprobe ads7846
+
+	# RTC
+	modprobe rtc-ds1307
+	echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device
+	hwclock -s
+
+	# Mount data partition
+	mount /dev/mmcblk0p3 /opt
+
+	# wifi
+	#modprobe brcmfmac
+        #wpa_supplicant -B -Dnl80211,wext -iwlan0 -c/etc/wpa_supplicant.conf
+	#qudhcpc -R -n -p /var/run/udhcpc.wlan0.pid -i wlan0
+
+	# watchdog
+	modprobe bcm2835-wdt
+	watchdog -t 10 /dev/watchdog
+
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+	;;
+  stop)
+	printf "Stopping : "
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
+
